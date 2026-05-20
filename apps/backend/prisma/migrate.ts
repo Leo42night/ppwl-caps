@@ -1,4 +1,4 @@
-import { prisma } from "./db";
+import { getPrisma } from "./db";
 import { readFileSync } from "fs";
 import { join } from "path";
 
@@ -10,7 +10,7 @@ const statements = sql
   .filter(s => s.length > 0);
 
 for (const statement of statements) {
-  await prisma.$executeRawUnsafe(statement);
+  await getPrisma().$executeRawUnsafe(statement);
 }
 
-await prisma.$disconnect();
+await getPrisma().$disconnect();

@@ -1,33 +1,44 @@
-import { Button } from "@/components/ui/button"
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import AuthPage from './pages/AuthPage';
+import Layout from './components/Layout';
+import HomePage from './pages/HomePage';
+import SinglePage from './pages/SinglePage';
+import NotifPage from './pages/NotifPage';
+import ProfilePage from './pages/ProfilePage';
 
-function App() {
-  return (
-    <div className="flex flex-col items-center justify-center gap-4 min-h-screen">
-      
-      <Button>Default</Button>
+const router = createBrowserRouter([
+    {
+        path: '/auth',
+        element: <AuthPage />,
+    },
+    {
+        path: '/',
+        element: <Layout />,
+        children: [
+            {
+                index: true, // Ini akan menjadi halaman utama (/)
+                element: <HomePage />,
+            },
+            {
+                path: 'post/:id', // Halaman detail post
+                element: <SinglePage />,
+            },
+            {
+                path: 'notifications',
+                element: <NotifPage />,
+            },
+            {
+                path: 'profile',
+                element: <ProfilePage />,
+            },
+        ],
+    },
+    {
+        path: '*',
+        element: <Navigate to="/" replace />, // Redirect jika rute tidak ditemukan
+    },
+]);
 
-      <Button variant="secondary">
-        Secondary
-      </Button>
-
-      <Button variant="destructive">
-        Delete
-      </Button>
-
-      <Button variant="outline">
-        Outline
-      </Button>
-
-      <Button variant="ghost">
-        Ghost
-      </Button>
-
-      <Button variant="link">
-        Link
-      </Button>
-
-    </div>
-  )
+export default function App() {
+    return <RouterProvider router={router} />;
 }
-
-export default App
