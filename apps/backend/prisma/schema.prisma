@@ -108,7 +108,7 @@ model Notification {
   id          Int            @id @default(autoincrement())
   user_id     Int
   actor_id    Int
-  type        NotificationType
+  type        NotificationType  // "LIKE", "COMMENT", FOLLOW
   post_id     Int?
   comment_id  Int?
   is_read     Boolean           @default(false)

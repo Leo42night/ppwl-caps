@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react';
 import { useGoogleLogin, type TokenResponse } from "@react-oauth/google";
 import axios from 'axios';
-import { useAuthStore } from '../stores/AuthStore';
-import { BACKEND_URL } from '@/contants';
+import { useAuthStore } from '../stores/useAuthStore';
+import { BACKEND_URL } from '@/constants';
 import { elysiaErr } from '@/lib/elysiaErr';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export const useGoogleAuth = () => {
     const navigate = useNavigate();
@@ -14,7 +15,6 @@ export const useGoogleAuth = () => {
 
     const handleGoogleSuccess = async (tokenResponse: TokenResponse) => {
         try {
-            navigate('/');
             setIsLoading(true); // 🚀 Mulai loading sebelum request api berjalan
 
             // 1. Pakai access token, di backend ambil data google user
@@ -28,9 +28,8 @@ export const useGoogleAuth = () => {
 
             // 5. Simpan ke Zustand Store (otomatis masuk localStorage jika pakai persist)
             setAuth(backendRes.data.user, jwtToken);
-            alert(`Anda berhasil login. ${created ? ' [Akun Dibuat]' : ''}`);
-
-            console.log("Login berhasil!");
+            toast.success(`Anda berhasil login. ${created ? ' [Akun Dibuat]' : ''}`);
+            navigate('/', { replace: true });
         } catch (err: any) {
             elysiaErr(err);
         } finally {

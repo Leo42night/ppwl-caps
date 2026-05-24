@@ -1,8 +1,9 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import AuthPage from './pages/AuthPage';
-import Layout from './components/Layout';
+import Layout from './layout/Layout';
+import ProtectedRoute from './layout/ProtectedRoute';
 import HomePage from './pages/HomePage';
-import SinglePage from './pages/SinglePage';
+import DetailPostPage from './pages/DetailPostPage';
 import NotifPage from './pages/NotifPage';
 import ProfilePage from './pages/ProfilePage';
 
@@ -21,15 +22,21 @@ const router = createBrowserRouter([
             },
             {
                 path: 'post/:id', // Halaman detail post
-                element: <SinglePage />,
+                element: <DetailPostPage />,
             },
+            // PROTECTED ROUTES (harus ada data user)
             {
-                path: 'notifications',
-                element: <NotifPage />,
-            },
-            {
-                path: 'profile',
-                element: <ProfilePage />,
+                element: <ProtectedRoute />,
+                children: [
+                    {
+                        path: 'notifications',
+                        element: <NotifPage />,
+                    },
+                    {
+                        path: 'profile',
+                        element: <ProfilePage />,
+                    },
+                ],
             },
         ],
     },

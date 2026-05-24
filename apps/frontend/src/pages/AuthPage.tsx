@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Eye, EyeOff } from "lucide-react";
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
 import { useEmailAuth } from '../hooks/useEmailAuth'; // 1. Import hook baru
 
@@ -6,9 +7,10 @@ export default function AuthPage() {
     const { loginWithGoogle, isLoading: isGoogleLoading } = useGoogleAuth();
 
     // 2. Gunakan hook email auth
-    const { loginWithEmail, registerWithEmail, isLoading: isEmailLoading, error, successMessage } = useEmailAuth();
+    const { loginWithEmail, registerWithEmail, isLoading: isEmailLoading, errorData, successMessage } = useEmailAuth();
 
     const [isRegisterMode, setIsRegisterMode] = useState<boolean>(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     // State internal untuk menangkap value dari input form
     const [formData, setFormData] = useState({
@@ -22,7 +24,7 @@ export default function AuthPage() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault();
 
         if (isRegisterMode) {
@@ -32,6 +34,7 @@ export default function AuthPage() {
                 // Jika daftar sukses, pindahkan otomatis ke mode login biar user tinggal masuk
                 setIsRegisterMode(false);
             }
+            console.log("errorData?.property", errorData?.property?.endsWith('password'));
         } else {
             // Jalankan fungsi login
             await loginWithEmail(formData.email, formData.password);
@@ -49,7 +52,7 @@ export default function AuthPage() {
                 </h3>
 
                 {/* Tampilkan pesan error jika ada */}
-                {error && <p style={{ color: 'red', fontSize: '13px', margin: '0 0 10px 0' }}>⚠️ {error}</p>}
+                {errorData && <p style={{ color: 'red', fontSize: '13px', margin: '0 0 10px 0' }}>⚠️ {errorData.message}</p>}
 
                 {/* Tampilkan pesan sukses jika registrasi berhasil */}
                 {successMessage && <p style={{ color: 'green', fontSize: '13px', margin: '0 0 10px 0' }}>✅ {successMessage}</p>}
@@ -63,6 +66,7 @@ export default function AuthPage() {
                             value={formData.name}
                             onChange={handleChange}
                             required
+                            className={errorData?.property === '/name' ? 'border-2 border-red-400' : ''}
                             style={{ width: '100%', marginBottom: '10px', padding: '8px', boxSizing: 'border-box' }}
                         />
                         <input
@@ -72,6 +76,7 @@ export default function AuthPage() {
                             value={formData.username}
                             onChange={handleChange}
                             required
+                            className={errorData?.property === '/username' ? 'border-2 border-red-400' : ''}
                             style={{ width: '100%', marginBottom: '10px', padding: '8px', boxSizing: 'border-box' }}
                         />
                     </>
@@ -84,18 +89,32 @@ export default function AuthPage() {
                     value={formData.email}
                     onChange={handleChange}
                     required
+                    className={errorData?.property === '/email' ? 'border-2 border-red-400' : ''}
                     style={{ width: '100%', marginBottom: '10px', padding: '8px', boxSizing: 'border-box' }}
                 />
 
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    style={{ width: '100%', marginBottom: '15px', padding: '8px', boxSizing: 'border-box' }}
-                />
+                <div className="relative w-full mb-4">
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        placeholder="Password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                        className={`w-full rounded border p-2 pr-10 ${errorData?.property?.endsWith("password")
+                            ? "border-2 border-red-400"
+                            : ""
+                            }`}
+                    />
+
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                    >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                </div>
 
                 <button type="submit" disabled={isLoading} style={{ width: '100%', padding: '10px', background: isRegisterMode ? 'green' : 'blue', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
                     {isLoading ? 'Memproses...' : isRegisterMode ? 'Daftar' : 'Login'}

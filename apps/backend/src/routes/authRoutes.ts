@@ -1,6 +1,6 @@
 import type { DbClient } from "../types";
 import { Elysia, t } from "elysia";
-import { jwt } from "@elysiajs/jwt";
+import { jwtConfig } from '../lib/jwt';
 
 let Provider: any;
 
@@ -16,13 +16,7 @@ async function initializeDatabase() {
 
 export const authRoutes = (getPrisma: () => DbClient) =>
     new Elysia({ prefix: "/auth" })
-        .use(
-            jwt({
-                name: "jwt",
-                secret: process.env.JWT_SECRET || "dev",
-                exp: "1d",
-            })
-        )
+        .use(jwtConfig)
         // ==========================================
         // 1. ENDPOINT: DAFTAR MANUAL (EMAIL & PASSWORD)
         // ==========================================
@@ -71,7 +65,7 @@ export const authRoutes = (getPrisma: () => DbClient) =>
 
             } catch (error) {
                 set.status = 500;
-                return { success: false, message: `Terjadi kesalahan server ${error}` };
+                return { success: false, error: error, detail: (error as Error).message };
             }
         }, {
             // Validasi input body menggunakan TypeBox (Elysia t)
@@ -105,11 +99,11 @@ export const authRoutes = (getPrisma: () => DbClient) =>
                 }
 
                 // Generate JWT Token setelah sukses login
-                // Kamu bisa menyelipkan access_token kosong/placeholder agar formatnya sama dengan Google OAuth kamu
+                // samakan dengan yg di /login
                 const sessionToken = await jwt.sign({
-                    userId: user.id,
-                    email: user.email,
-                    access_token: "manual_session_token"
+                    id: user.id,
+                    name: user.name,
+                    email: user.email
                 });
 
                 return {
@@ -127,7 +121,7 @@ export const authRoutes = (getPrisma: () => DbClient) =>
 
             } catch (error) {
                 set.status = 500;
-                return { success: false, message: "Terjadi kesalahan server" };
+                return { success: false, message: "Terjadi kesalahan server", detail: (error as Error).message };
             }
         }, {
             body: t.Object({
@@ -136,7 +130,7 @@ export const authRoutes = (getPrisma: () => DbClient) =>
             })
         })
 
-        .post("/google", async ({ body, jwt }) => {
+        .post("/google", async ({ body, jwt, set }) => {
             const { access_token } = body;
 
             // 1. Ambil info user dari Google (Verifikasi Token)
@@ -145,15 +139,10 @@ export const authRoutes = (getPrisma: () => DbClient) =>
             });
             const googleUser: any = await resG.json();
 
-            if (!googleUser.email) throw new Error("Invalid Google Token");
-
-            // 2. Buat JWT Session
-            const sessionToken = await jwt.sign({ googleUser });
-
-            const responseData: any = {
-                success: true,
-                token: sessionToken
-            };
+            if (!googleUser.email) {
+                set.status = 400;
+                return { success: false, message: "Token Google tidak valid atau kedaluwarsa" };
+            }
 
             await initializeDatabase(); // ambil data provider
 
@@ -172,6 +161,18 @@ export const authRoutes = (getPrisma: () => DbClient) =>
                     provider_id: googleUser.id,
                 },
             });
+
+            // 2. Buat JWT Session
+            const sessionToken = await jwt.sign({ // samakan dengan jwt di /login
+                id: user.id,
+                name: user.name,
+                email: user.email
+            });
+
+            const responseData: any = {
+                success: true,
+                token: sessionToken
+            };
 
             // Jika datanya baru dibuat, nilainya akan sama persis atau selisihnya di bawah 10ms (toleransi eksekusi DB)
             const isNewUser = Math.abs(user.created_at.getTime() - user.updated_at.getTime()) < 10;

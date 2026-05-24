@@ -1,5 +1,5 @@
 import { createApp } from "./index";
-import { loadConfig } from "./config";       // SSM loader
+import { loadConfig } from "./lib/ssm";       // SSM loader
 import { getPrisma } from "../prisma/dbPostgres"; // PostgreSQL
 
 let app: ReturnType<typeof createApp>;

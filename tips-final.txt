@@ -1,0 +1,3 @@
+Ganti Logo & Pelesetkan nama app (cth: "Quora" -> "Qura-Qura").
+Mobile First, buat resposive.
+Sederhanakan elemen, hilangkan button yg tidak dipakai supaya tidak membingungkan.
